@@ -20,6 +20,25 @@ double dt = 0.2;
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
+static CppAD::AD<double> polyEvalAd(Eigen::VectorXd coeffs, CppAD::AD<double> x) {
+  CppAD::AD<double> rv = 0;
+  for (int i = 0; i < coeffs.size(); i++) {
+    rv += coeffs[i] * CppAD::pow(x, i);
+  }
+
+  return rv;
+}
+
+static CppAD::AD<double> polyDerivEvalAd(Eigen::VectorXd coeffs, CppAD::AD<double> x) {
+  // evaluate derivative of polynomial
+  CppAD::AD<double> rv = 0;
+  for (int i = 1; i < coeffs.size(); i++) {
+    rv += coeffs[i] * CppAD::pow(x, i - 1) * i;
+  }
+
+  return rv;
+}
+
 class FG_eval {
  public:
   // Fitted polynomial coefficients
@@ -28,6 +47,62 @@ class FG_eval {
 
   typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
   void operator()(ADvector& fg, const ADvector& vars) {
+    // helper functions for getting variables
+    auto x = [&](int i) -> auto& { return vars[i]; };
+    auto y = [&](int i) -> auto& { return vars[N + i]; };
+    auto psi = [&](int i) -> auto& { return vars[2 * N + i]; };
+    auto v = [&](int i) -> auto& { return vars[3 * N + i]; };
+    auto cte = [&](int i) -> auto& { return vars[4 * N + i]; };
+    auto epsi = [&](int i) -> auto& { return vars[5 * N + i]; };
+    auto delta = [&](int i) -> auto& { return vars[6 * N + i]; };
+    auto a = [&](int i) -> auto& { return vars[7 * N - 1 + i]; };
+
+    // helper functions for getting constraints
+    auto cx = [&](int i) -> auto& { return fg[i + 1]; };
+    auto cy = [&](int i) -> auto& { return fg[N + i + 1]; };
+    auto cpsi = [&](int i) -> auto& { return fg[2 * N + i + 1]; };
+    auto cv = [&](int i) -> auto& { return fg[3 * N + i + 1]; };
+    auto ccte = [&](int i) -> auto& { return fg[4 * N + i + 1]; };
+    auto cepsi = [&](int i) -> auto& { return fg[5 * N + i + 1]; };
+
+    // define cost function
+    // add cost for cross-track error and heading error
+    for (int i = 0; i < N; i++) {
+      fg[0] += CppAD::pow(cte(i), 2);
+      fg[0] += CppAD::pow(epsi(i), 2);
+    }
+
+    // define constraints
+    // initial constraints
+    // TODO is this correct? I feel like we should be subtracting the `vars` value from the true current value
+    cx(0) = x(0);
+    cy(0) = y(0);
+    cpsi(0) = psi(0);
+    cv(0) = v(0);
+    ccte(0) = cte(0);
+    cepsi(0) = epsi(0);
+
+    // subsequent constraints
+    for (int i = 0; i < N - 1; i++) {
+      cx(i + 1) = x(i + 1) - (
+          x(i) + v(i) * CppAD::cos(psi(i)) * dt);
+      cy(i + 1) = y(i + 1) - (
+          y(i) + v(i) * CppAD::sin(psi(i)) * dt);
+      // note minus instead of plus in this expression
+      // because positive steering input *decreases*
+      // the bearing angle
+      cpsi(i + 1) = psi(i + 1) - (
+          psi(i) - v(i) / Lf * delta(i) * dt);
+      cv(i + 1) = v(i + 1) - (
+          v(i) + a(i) * dt);
+      // TODO this is different from what's given in the
+      // lesson, but it should still work right?
+      ccte(i + 1) = cte(i + 1) - (
+          y(i + 1) - polyEvalAd(coeffs, x(i + 1)));
+      cepsi(i + 1) = epsi(i + 1) - (
+          psi(i + 1) - CppAD::atan(polyDerivEvalAd(coeffs, x(i + 1))));
+    }
+
     // TODO: implement MPC
     // `fg` a vector of the cost constraints, `vars` is a vector of variable values (state & actuators)
     // NOTE: You'll probably go back and forth between this function and
