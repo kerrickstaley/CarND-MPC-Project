@@ -74,7 +74,6 @@ class FG_eval {
 
     // define constraints
     // initial constraints
-    // TODO is this correct? I feel like we should be subtracting the `vars` value from the true current value
     cx(0) = x(0);
     cy(0) = y(0);
     cpsi(0) = psi(0);
@@ -196,6 +195,18 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
   }
+  // initial x
+  constraints_lowerbound[0] = constraints_upperbound[0] = state[0];
+  // initial y
+  constraints_lowerbound[N] = constraints_upperbound[N] = state[1];
+  // initial psi
+  constraints_lowerbound[2 * N] = constraints_upperbound[2 * N] = state[2];
+  // initial v
+  constraints_lowerbound[3 * N] = constraints_upperbound[3 * N] = state[3];
+  // initial cte
+  constraints_lowerbound[4 * N] = constraints_upperbound[4 * N] = state[4];
+  // initial epsi
+  constraints_lowerbound[5 * N] = constraints_upperbound[5 * N] = state[5];
 
   // object that computes objective and constraints
   FG_eval fg_eval(coeffs);
