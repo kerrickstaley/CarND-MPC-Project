@@ -135,6 +135,19 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     vars[i] = 0;
   }
 
+  // initial x
+  vars[0] = state[0];
+  // initial y
+  vars[N] = state[1];
+  // initial psi
+  vars[2 * N] = state[2];
+  // initial v
+  vars[3 * N] = state[3];
+  // initial cte
+  vars[4 * N] = state[4];
+  // initial epsi
+  vars[5 * N] = state[5];
+
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
 
