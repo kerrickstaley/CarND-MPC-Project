@@ -116,7 +116,9 @@ int main() {
 
           Eigen::VectorXd coeffs = polyfit(ptsx_vec, ptsy_vec, 3);
 
-          mpc.Solve(state, coeffs);
+          vector<double> solution = mpc.Solve(state, coeffs);
+          steer_value = solution[0] / deg2rad(25);
+          throttle_value = solution[1];
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
