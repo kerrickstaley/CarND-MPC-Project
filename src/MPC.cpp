@@ -162,7 +162,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     // minimum psi = -infinity
     vars_lowerbound[2 * N + i] = -1e10;
     // maximum psi = infinity
-    vars_lowerbound[2 * N + i] = 1e10;
+    vars_upperbound[2 * N + i] = 1e10;
     // minimum v = 0
     vars_lowerbound[3 * N + i] = 0;
     // maximum v = 100
