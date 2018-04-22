@@ -237,6 +237,10 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
       options, vars, vars_lowerbound, vars_upperbound, constraints_lowerbound,
       constraints_upperbound, fg_eval, solution);
 
+  if (solution.status != CppAD::ipopt::solve_result<Dvector>::success) {
+    std::cerr << "Error! CppAD::ipopt::solve failed to find solution!\n";
+  }
+
   // Check some of the solution values
   ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
 
