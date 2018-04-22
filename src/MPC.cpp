@@ -72,6 +72,11 @@ class FG_eval {
       fg[0] += CppAD::pow(epsi(i), 2);
     }
 
+    // add cost for not moving at 20 kmph
+    for (int i = 0; i < N; i++) {
+      fg[0] += CppAD::pow(v(i) - 20, 2);
+    }
+
     // define constraints
     // initial constraints
     cx(0) = x(0);
