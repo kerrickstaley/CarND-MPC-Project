@@ -101,6 +101,23 @@ int main() {
           double steer_value;
           double throttle_value;
 
+          Eigen::VectorXd state(6);
+          // TODO I'm setting cte and epsi to zero here, it should not matter but should set the real values ideally.
+          state << px, py, psi, v, 0, 0;
+
+          Eigen::VectorXd ptsx_vec(ptsx.size());
+          for (int i = 0; i < ptsx.size(); i++) {
+            ptsx_vec[i] = ptsx[i];
+          }
+          Eigen::VectorXd ptsy_vec(ptsy.size());
+          for (int i = 0; i < ptsy.size(); i++) {
+            ptsy_vec[i] = ptsy[i];
+          }
+
+          Eigen::VectorXd coeffs = polyfit(ptsx_vec, ptsy_vec, 3);
+
+          mpc.Solve(state, coeffs);
+
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
