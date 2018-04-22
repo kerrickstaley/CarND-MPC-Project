@@ -253,5 +253,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
 
+  std::cerr << "Optimal delta: " << solution.x[6 * N] << "; optimal a: " << solution.x[7 * N - 1] << '\n';
   return {solution.x[6 * N], solution.x[7 * N - 1]};
 }
