@@ -137,7 +137,43 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
-  // TODO: Set lower and upper limits for variables.
+
+  for (int i = 0; i < N; i++) {
+    // minimum x = -infinity
+    vars_lowerbound[i] = -1e10;
+    // maximum x = infinity
+    vars_upperbound[i] = 1e10;
+    // minimum y = -infinity
+    vars_lowerbound[N + i] = -1e10;
+    // maximum y = infinity
+    vars_upperbound[N + i] = 1e10;
+    // minimum psi = -infinity
+    vars_lowerbound[2 * N + i] = -1e10;
+    // maximum psi = infinity
+    vars_lowerbound[2 * N + i] = 1e10;
+    // minimum v = 0
+    vars_lowerbound[3 * N + i] = 0;
+    // maximum v = 100
+    vars_upperbound[3 * N + i] = 100;
+    // minimum cte = -infinity
+    vars_lowerbound[4 * N + i] = -1e10;
+    // maximum cte = infinity
+    vars_upperbound[4 * N + i] = 1e10;
+    // minimum epsi = -infinity
+    vars_lowerbound[5 * N + i] = -1e10;
+    // maximum epsi = infinity
+    vars_upperbound[5 * N + i] = 1e10;
+    if (i < N - 1) {
+      // minimum delta = -25 degrees
+      vars_lowerbound[6 * N + i] = -25.0 / 180 * M_PI;
+      // maximum delta = 25 degrees
+      vars_upperbound[6 * N + i] = 25.0 / 180 * M_PI;
+      // minimum a = -1
+      vars_lowerbound[7 * N - 1 + i] = -1;
+      // maximum a = 1
+      vars_upperbound[7 * N - 1 + i] = 1;
+    }
+  }
 
   // Lower and upper limits for the constraints
   // Should be 0 besides initial state.
