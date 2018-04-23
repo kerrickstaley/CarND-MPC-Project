@@ -77,6 +77,16 @@ class FG_eval {
       fg[0] += CppAD::pow(v(i) - 20, 2);
     }
 
+    // add cost for high steering angle
+    for (int i = 0; i < N - 1; i++) {
+      fg[0] += CppAD::pow(delta(i), 2);
+    }
+
+    // add cost for high acceleration
+    for (int i = 0; i < N - 1; i++) {
+      fg[0] += 100 * CppAD::pow(a(i), 2);
+    }
+
     // define constraints
     // initial constraints
     cx(0) = x(0);
@@ -106,11 +116,6 @@ class FG_eval {
       cepsi(i + 1) = epsi(i + 1) - (
           psi(i + 1) - CppAD::atan(polyDerivEvalAd(coeffs, x(i + 1))));
     }
-
-    // TODO: implement MPC
-    // `fg` a vector of the cost constraints, `vars` is a vector of variable values (state & actuators)
-    // NOTE: You'll probably go back and forth between this function and
-    // the Solver function below.
   }
 };
 
