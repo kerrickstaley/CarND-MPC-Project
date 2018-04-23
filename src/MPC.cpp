@@ -84,7 +84,7 @@ class FG_eval {
 
     // add cost for high acceleration
     for (int i = 0; i < N - 1; i++) {
-      fg[0] += 100 * CppAD::pow(a(i), 2);
+      fg[0] += 10 * CppAD::pow(a(i), 2);
     }
 
     // define constraints
