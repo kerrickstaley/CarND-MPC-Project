@@ -71,7 +71,7 @@ class FG_eval {
     // add cost for cross-track error and heading error
     for (int i = 0; i < N; i++) {
       fg[0] += CppAD::pow(cte(i), 2);
-      fg[0] += CppAD::pow(epsi(i), 2);
+      fg[0] += 20 * CppAD::pow(epsi(i), 2);
     }
 
     // add cost for not moving at 30 mi/h
@@ -87,6 +87,11 @@ class FG_eval {
     // add cost for high acceleration
     for (int i = 0; i < N - 1; i++) {
       fg[0] += 10 * CppAD::pow(a(i), 2);
+    }
+
+    // add a penalty for steering changes
+    for (int i = 0; i < N - 2; i++) {
+      fg[0] += 40 * CppAD::pow(delta(i + 1) - delta(i), 2);
     }
 
     // define constraints
