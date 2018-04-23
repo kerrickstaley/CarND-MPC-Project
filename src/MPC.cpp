@@ -64,6 +64,8 @@ class FG_eval {
     auto cv = [&](int i) -> auto& { return fg[3 * N + i + 1]; };
     auto ccte = [&](int i) -> auto& { return fg[4 * N + i + 1]; };
     auto cepsi = [&](int i) -> auto& { return fg[5 * N + i + 1]; };
+    auto cdelta = [&](int i) -> auto& { return fg[6 * N + i + 1]; };
+    auto ca = [&](int i) -> auto& { return fg[6 * N + i + 2]; };
 
     // define cost function
     // add cost for cross-track error and heading error
@@ -72,9 +74,9 @@ class FG_eval {
       fg[0] += CppAD::pow(epsi(i), 2);
     }
 
-    // add cost for not moving at 20 kmph
+    // add cost for not moving at 30 mi/h
     for (int i = 0; i < N; i++) {
-      fg[0] += CppAD::pow(v(i) - 20, 2);
+      fg[0] += CppAD::pow(v(i) - 30, 2);
     }
 
     // add cost for high steering angle
@@ -95,10 +97,8 @@ class FG_eval {
     cv(0) = v(0);
     ccte(0) = cte(0);
     cepsi(0) = epsi(0);
-
-    // account for time delay, psi_1 == psi_0 and v_1 == v_0
-    cpsi(1) = psi(1);
-    cv(1) = v(1);
+    cdelta(0) = delta(0);
+    ca(0) = a(0);
 
     // subsequent constraints
     for (int i = 0; i < N - 1; i++) {
@@ -106,17 +106,13 @@ class FG_eval {
           x(i) + v(i) * CppAD::cos(psi(i)) * dt);
       cy(i + 1) = y(i + 1) - (
           y(i) + v(i) * CppAD::sin(psi(i)) * dt);
-      // account for time delay, steer and accelerator inputs affect the car
-      // *two* timesteps into the future instead of one
-      if (i > 0) {
-        // note minus instead of plus in this expression
-        // because positive steering input *decreases*
-        // the bearing angle
-        cpsi(i + 1) = psi(i + 1) - (
-            psi(i) - v(i) / Lf * delta(i - 1) * dt);
-        cv(i + 1) = v(i + 1) - (
-            v(i) + a(i - 1) * dt);
-      }
+      // note minus instead of plus in this expression
+      // because positive steering input *decreases*
+      // the bearing angle
+      cpsi(i + 1) = psi(i + 1) - (
+          psi(i) - v(i) / Lf * delta(i) * dt);
+      cv(i + 1) = v(i + 1) - (
+          v(i) + a(i) * dt);
       // TODO this is different from what's given in the
       // lesson, but it should still work right?
       ccte(i + 1) = cte(i + 1) - (
@@ -142,8 +138,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   const size_t n_actuator_vars = 2;
   size_t n_vars = n_state_vars * N + n_actuator_vars * (N - 1);
 
-  // one constraint per timestep for each state_var
-  size_t n_constraints = n_state_vars * N;
+  // one constraint per timestep for each state_var, plus constraints on initial delta and a
+  size_t n_constraints = n_state_vars * N + 2;
 
   // Initial value of the independent variables.
   // SHOULD BE 0 besides initial state.
@@ -226,10 +222,10 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // initial epsi
   constraints_lowerbound[5 * N] = constraints_upperbound[5 * N] = state[5];
 
-  // psi at timestep 1
-  constraints_lowerbound[2 * N + 1] = constraints_upperbound[2 * N + 1] = state[2];
-  // v at timestep 1
-  constraints_lowerbound[3 * N + 1] = constraints_upperbound[3 * N + 1] = state[3];
+  // initial delta
+  constraints_lowerbound[6 * N] = constraints_upperbound[6 * N] = state[6];
+  // initial a
+  constraints_lowerbound[6 * N + 1] = constraints_upperbound[6 * N + 1] = state[7];
 
   // object that computes objective and constraints
   FG_eval fg_eval(coeffs);
@@ -271,6 +267,12 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
 
-  std::cerr << "Optimal delta: " << solution.x[6 * N] << "; optimal a: " << solution.x[7 * N - 1] << '\n';
-  return {solution.x[6 * N], solution.x[7 * N - 1]};
+  std::cerr << "Optimal delta: " << solution.x[6 * N + 1] << "; optimal a: " << solution.x[7 * N] << '\n';
+  vector<double> rv = {solution.x[6 * N + 1], solution.x[7 * N]};
+  // push x, y pairs on the back for debugging
+  for (int i = 1; i < N; i++) {
+    rv.push_back(solution.x[i]);
+    rv.push_back(solution.x[N + i]);
+  }
+  return rv;
 }

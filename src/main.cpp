@@ -71,8 +71,10 @@ int main() {
   // MPC is initialized here!
   MPC mpc;
 
-  h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
-                     uWS::OpCode opCode) {
+  double last_delta = 0, last_a = 0;
+
+  h.onMessage([&](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+                  uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -101,9 +103,9 @@ int main() {
           double steer_value;
           double throttle_value;
 
-          Eigen::VectorXd state(6);
+          Eigen::VectorXd state(8);
           // TODO I'm setting cte and epsi to zero here, it should not matter but should set the real values ideally.
-          state << 0, 0, 0, v, 0, 0;
+          state << 0, 0, 0, v, 0, 0, last_delta, last_a;
 
           // transform real world coordinates into vehicle reference frame by subtracting px from x values and py from y values
           // and then performing a rotation of -psi
@@ -130,9 +132,17 @@ int main() {
           msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle_value;
 
+          last_delta = solution[0];
+          last_a = solution[1];
+
           //Display the MPC predicted trajectory
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
+
+          for (int i = 2; i < solution.size(); i += 2) {
+            mpc_x_vals.push_back(solution[i]);
+            mpc_y_vals.push_back(solution[i + 1]);
+          }
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
