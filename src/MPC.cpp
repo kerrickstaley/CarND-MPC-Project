@@ -79,7 +79,7 @@ class FG_eval {
 
     // add cost for high steering angle
     for (int i = 0; i < N - 1; i++) {
-      fg[0] += CppAD::pow(delta(i), 2);
+      fg[0] += 40 * CppAD::pow(delta(i), 2);
     }
 
     // add cost for high acceleration
