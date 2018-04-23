@@ -105,13 +105,15 @@ int main() {
           // TODO I'm setting cte and epsi to zero here, it should not matter but should set the real values ideally.
           state << 0, 0, 0, v, 0, 0;
 
+          // transform real world coordinates into vehicle reference frame by subtracting px from x values and py from y values
+          // and then performing a rotation of -psi
           Eigen::VectorXd ptsx_vec(ptsx.size());
           for (int i = 0; i < ptsx.size(); i++) {
-            ptsx_vec[i] = ptsx[i];
+            ptsx_vec[i] = (ptsx[i] - px) * cos(-psi) + (ptsy[i] - py) * -sin(-psi);
           }
           Eigen::VectorXd ptsy_vec(ptsy.size());
           for (int i = 0; i < ptsy.size(); i++) {
-            ptsy_vec[i] = ptsy[i];
+            ptsy_vec[i] = (ptsx[i] - px) * sin(-psi) + (ptsy[i] - py) * cos(-psi);
           }
 
           Eigen::VectorXd coeffs = polyfit(ptsx_vec, ptsy_vec, 3);
