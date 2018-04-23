@@ -5,7 +5,7 @@
 
 using CppAD::AD;
 
-size_t N = 20;
+size_t N = 15;
 double dt = 0.1;
 
 // This value assumes the model presented in the classroom is used.
@@ -71,12 +71,12 @@ class FG_eval {
     // add cost for cross-track error and heading error
     for (int i = 0; i < N; i++) {
       fg[0] += CppAD::pow(cte(i), 2);
-      fg[0] += 20 * CppAD::pow(epsi(i), 2);
+      fg[0] += 40 * CppAD::pow(epsi(i), 2);
     }
 
-    // add cost for not moving at 30 mi/h
+    // add cost for not moving at 50 mi/h
     for (int i = 0; i < N; i++) {
-      fg[0] += CppAD::pow(v(i) - 30, 2);
+      fg[0] += CppAD::pow(v(i) - 50, 2);
     }
 
     // add cost for high steering angle
@@ -121,7 +121,7 @@ class FG_eval {
       // this is different from what's given in the
       // lesson, but it should still work right?
       ccte(i + 1) = cte(i + 1) - (
-          y(i + 1) - polyEvalAd(coeffs, x(i + 1)));
+          y(i + 1) - polyEvalAd(coeffs, x(i + 1))) * CppAD::cos(CppAD::atan(polyDerivEvalAd(coeffs, x(i + 1))));
       cepsi(i + 1) = epsi(i + 1) - (
           psi(i + 1) - CppAD::atan(polyDerivEvalAd(coeffs, x(i + 1))));
     }
