@@ -118,7 +118,7 @@ class FG_eval {
           psi(i) - v(i) / Lf * delta(i) * dt);
       cv(i + 1) = v(i + 1) - (
           v(i) + a(i) * dt);
-      // TODO this is different from what's given in the
+      // this is different from what's given in the
       // lesson, but it should still work right?
       ccte(i + 1) = cte(i + 1) - (
           y(i + 1) - polyEvalAd(coeffs, x(i + 1)));
