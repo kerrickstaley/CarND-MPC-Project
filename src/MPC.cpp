@@ -96,19 +96,27 @@ class FG_eval {
     ccte(0) = cte(0);
     cepsi(0) = epsi(0);
 
+    // account for time delay, psi_1 == psi_0 and v_1 == v_0
+    cpsi(1) = psi(1);
+    cv(1) = v(1);
+
     // subsequent constraints
     for (int i = 0; i < N - 1; i++) {
       cx(i + 1) = x(i + 1) - (
           x(i) + v(i) * CppAD::cos(psi(i)) * dt);
       cy(i + 1) = y(i + 1) - (
           y(i) + v(i) * CppAD::sin(psi(i)) * dt);
-      // note minus instead of plus in this expression
-      // because positive steering input *decreases*
-      // the bearing angle
-      cpsi(i + 1) = psi(i + 1) - (
-          psi(i) - v(i) / Lf * delta(i) * dt);
-      cv(i + 1) = v(i + 1) - (
-          v(i) + a(i) * dt);
+      // account for time delay, steer and accelerator inputs affect the car
+      // *two* timesteps into the future instead of one
+      if (i > 0) {
+        // note minus instead of plus in this expression
+        // because positive steering input *decreases*
+        // the bearing angle
+        cpsi(i + 1) = psi(i + 1) - (
+            psi(i) - v(i) / Lf * delta(i - 1) * dt);
+        cv(i + 1) = v(i + 1) - (
+            v(i) + a(i - 1) * dt);
+      }
       // TODO this is different from what's given in the
       // lesson, but it should still work right?
       ccte(i + 1) = cte(i + 1) - (
@@ -217,6 +225,11 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   constraints_lowerbound[4 * N] = constraints_upperbound[4 * N] = state[4];
   // initial epsi
   constraints_lowerbound[5 * N] = constraints_upperbound[5 * N] = state[5];
+
+  // psi at timestep 1
+  constraints_lowerbound[2 * N + 1] = constraints_upperbound[2 * N + 1] = state[2];
+  // v at timestep 1
+  constraints_lowerbound[3 * N + 1] = constraints_upperbound[3 * N + 1] = state[3];
 
   // object that computes objective and constraints
   FG_eval fg_eval(coeffs);
