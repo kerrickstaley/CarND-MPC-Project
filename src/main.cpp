@@ -107,13 +107,15 @@ int main() {
 
           // transform real world coordinates into vehicle reference frame by subtracting px from x values and py from y values
           // and then performing a rotation of -psi
-          Eigen::VectorXd ptsx_vec(ptsx.size());
+          Eigen::VectorXd ptsx_vec(ptsx.size() + 1);
+          ptsx_vec[0] = 0;
           for (int i = 0; i < ptsx.size(); i++) {
-            ptsx_vec[i] = (ptsx[i] - px) * cos(-psi) + (ptsy[i] - py) * -sin(-psi);
+            ptsx_vec[i + 1] = (ptsx[i] - px) * cos(-psi) + (ptsy[i] - py) * -sin(-psi);
           }
-          Eigen::VectorXd ptsy_vec(ptsy.size());
+          Eigen::VectorXd ptsy_vec(ptsy.size() + 1);
+          ptsy_vec[0] = 0;
           for (int i = 0; i < ptsy.size(); i++) {
-            ptsy_vec[i] = (ptsx[i] - px) * sin(-psi) + (ptsy[i] - py) * cos(-psi);
+            ptsy_vec[i + 1] = (ptsx[i] - px) * sin(-psi) + (ptsy[i] - py) * cos(-psi);
           }
 
           Eigen::VectorXd coeffs = polyfit(ptsx_vec, ptsy_vec, 3);
