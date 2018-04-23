@@ -103,7 +103,7 @@ int main() {
 
           Eigen::VectorXd state(6);
           // TODO I'm setting cte and epsi to zero here, it should not matter but should set the real values ideally.
-          state << px, py, psi, v, 0, 0;
+          state << 0, 0, 0, v, 0, 0;
 
           Eigen::VectorXd ptsx_vec(ptsx.size());
           for (int i = 0; i < ptsx.size(); i++) {
