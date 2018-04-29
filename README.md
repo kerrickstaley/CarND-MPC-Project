@@ -12,3 +12,16 @@ trajectory. Once that timestep has elapsed, the new ground-truth state of the ca
 Then the process is repeated, with a new optimal trajectory being calculated based off the new ground-truth state, and
 the first step of that new trajectory being executed.
 
+## Model Description
+The kinematic model of the car tracks the car's state as a 4-element vector: [*x*, *y*, *&psi;*, *v*]. *x* and *y* are
+the coordinates of the car, relative to the car (so *x* = *y* = 0 at *t* = 0, but they will be non-zero for *t* > 0).
+*&psi;* is the heading of the car, relative to the car (likewise it will be zero at *t* = 0). For *x*, *y*, and *&psi;*
+a coordinate system is used where the car's direction points along the positive *x* axis. *v* is the car's speed.
+
+The model represents the actuations as a 2-element vector: [*&delta;*, *a*]. *&delta;* represents the steering input to
+the car as an angle between -25&deg; and 25&deg;. *a* represents the acceleration input as a value between -1 miles/
+hour/second and 1 miles/hour/second. Negative values represent braking, positive values represent accelerating.
+
+For a given timestep with an elapsed time *&delta;t*, the following equations are used to predict the new state
+[*x*<sub>*n* + 1</sub>, *y*<sub>*n* + 1</sub>, *&psi;*<sub>*n* + 1</sub>, *v*<sub>*n* + 1</sub>] from the current state
+[*x*<sub>*n*</sub>, *y*<sub>*n*</sub>, *&psi;*<sub>*n*</sub>, *v*<sub>*n*</sub>]:
