@@ -22,6 +22,14 @@ The model represents the actuations as a 2-element vector: [*&delta;*, *a*]. *&d
 the car as an angle between -25&deg; and 25&deg;. *a* represents the acceleration input as a value between -1 miles/
 hour/second and 1 miles/hour/second. Negative values represent braking, positive values represent accelerating.
 
-For a given timestep with an elapsed time *&delta;t*, the following equations are used to predict the new state
-[*x*<sub>*n* + 1</sub>, *y*<sub>*n* + 1</sub>, *&psi;*<sub>*n* + 1</sub>, *v*<sub>*n* + 1</sub>] from the current state
-[*x*<sub>*n*</sub>, *y*<sub>*n*</sub>, *&psi;*<sub>*n*</sub>, *v*<sub>*n*</sub>]:
+For a given timestep with an elapsed time *&Delta;t*, the following equations are used to predict the new state
+[*x*<sub>*i* + 1</sub>, *y*<sub>*i* + 1</sub>, *&psi;*<sub>*i* + 1</sub>, *v*<sub>*i* + 1</sub>] from the current state
+[*x*<sub>*i*</sub>, *y*<sub>*i*</sub>, *&psi;*<sub>*i*</sub>, *v*<sub>*i*</sub>]:
+
+*x*<sub>*i* + 1</sub> = *x*<sub>*i*</sub> + *v*<sub>*i*</sub> × cos(*v*<sub>*i*</sub>) × *&Delta;t*
+
+*y*<sub>*i* + 1</sub> = *y*<sub>*i*</sub> + *v*<sub>*i*</sub> × sin(*v*<sub>*i*</sub>) × *&Delta;t*
+
+*&psi;*<sub>*i* + 1</sub> = *&psi;*<sub>*i*</sub> - *&delta;* × *v*<sub>*i*</sub> / *Lf* × *&Delta;t*
+
+*v*<sub>*i* + 1</sub> = *v*<sub>*i*</sub> + *a*<sub>*i*</sub> × *&Delta;t*
