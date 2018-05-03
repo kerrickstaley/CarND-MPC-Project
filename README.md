@@ -19,8 +19,8 @@ the coordinates of the car, relative to the car (so *x* = *y* = 0 at *t* = 0, bu
 a coordinate system is used where the car's direction points along the positive *x* axis. *v* is the car's speed.
 
 The model represents the actuations as a 2-element vector: [*&delta;*, *a*]. *&delta;* represents the steering input to
-the car as an angle between -25&deg; and 25&deg;. *a* represents the acceleration input as a value between -1 miles/
-hour/second and 1 miles/hour/second. Negative values represent braking, positive values represent accelerating.
+the car as an angle between -25&deg; and 25&deg;. *a* represents the acceleration input as a value between -1
+miles/hour/second and 1 miles/hour/second. Negative values represent braking, positive values represent accelerating.
 
 For a given timestep with an elapsed time *&Delta;t*, the following equations are used to predict the new state
 [*x*<sub>*i* + 1</sub>, *y*<sub>*i* + 1</sub>, *&psi;*<sub>*i* + 1</sub>, *v*<sub>*i* + 1</sub>] from the current state
@@ -33,3 +33,15 @@ For a given timestep with an elapsed time *&Delta;t*, the following equations ar
 *&psi;*<sub>*i* + 1</sub> = *&psi;*<sub>*i*</sub> - *&delta;* × *v*<sub>*i*</sub> / *Lf* × *&Delta;t*
 
 *v*<sub>*i* + 1</sub> = *v*<sub>*i*</sub> + *a*<sub>*i*</sub> × *&Delta;t*
+
+In the 3rd equation above, *Lf* is a constant that determines how fast the car turns for a given steering angle. Cars
+with a larger wheelbase will have higher *Lf* values.
+
+## Choosing *N* and *&Delta;t*
+When implementing a model predictive controller, one must choose values for the parameters *N* and *&Delta;t*. *N* is
+the number of future timesteps that the trajectory is optimized over, and *&Delta;t* is the size of each timestep.
+
+I chose *&Delta;t* = 100ms because it made it easy to deal with the 100ms actuation lag (actuations can simply take
+effect one timestep later to simulate the lag). I chose *N* = 15 because I found that it gave results and had good
+performance (in fact, higher values of *N* would cause the car to sometimes choose incorrect trajectories involving
+U-turns).
