@@ -45,3 +45,23 @@ I chose *&Delta;t* = 100ms because it made it easy to deal with the 100ms actuat
 effect one timestep later to simulate the lag). I chose *N* = 15 because I found that it gave results and had good
 performance (in fact, higher values of *N* would cause the car to sometimes choose incorrect trajectories involving
 U-turns).
+
+## Fitting a Polynomial to the Waypoints
+To define the reference trajectory, I fit a 3rd-degree polynomial to the input waypoints. To make the trajectory more
+realistic and to also prevent the trajectory from "jumping" whenever the car passed a waypoint, I also added the car's
+current position (the origin, since the polynomial is computed in the car's coordinate space) to the set of waypoints,
+so that the reference trajectory will come close to the origin.
+
+## Dealing with Latency
+The controller simulates 100ms of actuation latency by waiting 100ms after an actuation is computed before sending it
+to the simulator.
+
+I found that at lower speeds, e.g. less than 20 mi/h, the car was still able to drive around the track even with no
+special compensation for the latency. However, at speeds higher than that, the car would eventually derail.
+
+In order to compensate for the latency, I changed my model to simulate the latency's effect. Since my *&Delta;t* is
+100ms, this simply means using the actuations from timestep *i* - 1, instead of timestep *i*, to compute the transition
+from timestep *i* to timestep *i + 1*. This also means that after I calculated *&delta* and *a* values, I needed to save
+them and pass them into the model in the next iteration of the loop.
+
+I was able to get the car to successfully drive around the track at over 45 mi/h.
